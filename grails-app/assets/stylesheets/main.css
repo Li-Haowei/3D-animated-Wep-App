@@ -138,6 +138,9 @@ img {
     margin-right: 0.5em;
     padding: 0;
 }
+.nav li a{
+    color: #1b1e21;
+}
 
 .nav a {
     color: #666666;

@@ -41,7 +41,7 @@ pre {
 
 }
 .navbar-dark, .navbar-static-top {
-    background-color: #424649;
+    background-color: #E8BEAC;
     border: 0px;
 }
 a.navbar-brand {
@@ -56,8 +56,8 @@ a.navbar-brand {
     color: white !important;
 }
 .navbar-nav>li>a:hover {
-    background-color: #2559a7 !important;
-    color: white !important;
+    background-color: #eac086 !important;
+    color: black !important;
 }
 .navbar-nav>li>a {
     color: #c0d3db;

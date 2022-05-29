@@ -13,6 +13,9 @@ info:
         name: '@info.app.name@'
         version: '@info.app.version@'
         grailsVersion: '@info.app.grailsVersion@'
+server:
+    port:
+        8181
 spring:
     jmx:
         unique-names: true

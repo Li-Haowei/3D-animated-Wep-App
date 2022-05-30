@@ -12,6 +12,7 @@
     <asset:javascript src="CopyShader.js"/>
     <asset:javascript src="ShaderPass.js"/>
     <asset:javascript src="MaskPass.js"/>
+    <asset:javascript src="chroma.min.js"/>
     <style>
         .center {
             display: flex;
@@ -31,7 +32,7 @@
     </style>
 </head>
 <body>
-<!--Top tool bar-->
+<!--Top toolbar-->
 <content tag="nav" >
     <!--Communication dropdown list-->
     <li class="dropdown allYellow">
@@ -72,7 +73,7 @@
 
 
 
-<div class="center" >
+<div class="center" style="background: black" >
     <div id="three-container">
         <%--<asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>--%>
     </div>
@@ -122,12 +123,22 @@
         earthMesh.name = 'earth';
         scene.add(earthMesh);
 
+        // create overlay
+
+        const overlayGeometry = new THREE.SphereGeometry(15, 60, 60);
+        const overlayMaterial = createOverlayMaterial();
+        const overlayMesh = new THREE.Mesh(overlayGeometry, overlayMaterial);
+        overlayMesh.name= 'overlay';
+        scene.add(overlayMesh);
+
         // create a cloudGeometry, slighly bigger than the original sphere
         const cloudGeometry = new THREE.SphereGeometry(15.3, 60, 60);
         const cloudMaterial = createCloudMaterial();
         const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
         cloudMesh.name = 'clouds';
         scene.add(cloudMesh);
+
+        //addCanvas()
 
         // now add some better lighting
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -154,7 +165,7 @@
         control = new function () {
             this.earthRotationSpeed = 0.005;
             this.cloudRotationSpeed = 0.01;
-            this.opacity = 0.6;
+            //this.opacity = 0.6;
             this.ambientLightColor = ambientLight.color.getHex();
             this.directionalLightColor = directionalLight.color.getHex();
         };
@@ -263,6 +274,8 @@
      * for future renders
      */
     function render() {
+        scene.getObjectByName('overlay').material.map.needsUpdate = true;
+
         //imbed into selected item
         let container = document.getElementById('three-container');
         renderer.setSize($(container).width(), $(container).height());
@@ -278,6 +291,7 @@
 
         //rotation
         scene.getObjectByName('earth').rotation.y+=control.earthRotationSpeed;
+        scene.getObjectByName('overlay').rotation.y += control.earthRotationSpeed;
         scene.getObjectByName('clouds').rotation.y+=control.cloudRotationSpeed;
 
         // update light colors
@@ -321,6 +335,143 @@
             // update any render target sizes here
         }
     }
+
+    function createOverlayMaterial() {
+        const olMaterial = new THREE.MeshPhongMaterial();
+        olMaterial.map = new THREE.Texture(addCanvas());
+        olMaterial.transparent = true;
+        olMaterial.opacity = 0.6;
+        return olMaterial;
+    }
+
+    function addCanvas() {
+        canvas = document.createElement("canvas");
+        canvas.width=4096;
+        canvas.height=2048;
+
+        const context = canvas.getContext('2d');
+
+        const xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                var ports = CSVToArray(xmlhttp.responseText,";");
+                ports.forEach(function(e) {
+
+                    if (e[25] === 'L') {
+                        var posY = parseFloat( e[4] + "." + e[5]);
+                        var sign = e[6];
+                        if (sign === 'S') posY = posY*-1;
+
+
+                        var posX = parseFloat( e[7] + "." + e[8]);
+                        var sign = e[9];
+                        if (sign === 'W') posX = posX*-1;
+
+                        var x2 =   ((4096/360.0) * (180 + posX));
+                        var y2 =   ((2048/180.0) * (90 - posY));
+
+                        context.beginPath();
+                        context.arc(x2, y2, 4, 0, 2 * Math.PI, false);
+                        context.fillStyle = 'red';
+                        context.fill();
+
+                        context.fill();
+                        context.lineWidth = 2;
+                        context.strokeStyle = '#003300';
+                        context.stroke();
+                    }
+                });
+            }
+        }
+
+        xmlhttp.open("GET", "/assets/wpi.csv", true);
+        xmlhttp.send();
+
+        return canvas;
+    }
+    function CSVToArray( strData, strDelimiter ){
+        // Check to see if the delimiter is defined. If not,
+        let strMatchedValue;
+        // then default to comma.
+        strDelimiter = (strDelimiter || ",");
+
+        // Create a regular expression to parse the CSV values.
+        const objPattern = new RegExp(
+            (
+                // Delimiters.
+                "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                // Quoted fields.
+                "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                // Standard fields.
+                "([^\"\\" + strDelimiter + "\\r\\n]*))"
+            ),
+            "gi"
+        );
+
+
+        // Create an array to hold our data. Give the array
+        // a default empty first row.
+        const arrData = [[]];
+
+        // Create an array to hold our individual pattern
+        // matching groups.
+        let arrMatches = null;
+
+
+        // Keep looping over the regular expression matches
+        // until we can no longer find a match.
+        while (arrMatches = objPattern.exec( strData )){
+
+            // Get the delimiter that was found.
+            const strMatchedDelimiter = arrMatches[1];
+
+            // Check to see if the given delimiter has a length
+            // (is not the start of string) and if it matches
+            // field delimiter. If id does not, then we know
+            // that this delimiter is a row delimiter.
+            if (
+                strMatchedDelimiter.length &&
+                (strMatchedDelimiter != strDelimiter)
+            ){
+
+                // Since we have reached a new row of data,
+                // add an empty row to our data array.
+                arrData.push( [] );
+
+            }
+
+
+            // Now that we have our delimiter out of the way,
+            // let's check to see which kind of value we
+            // captured (quoted or unquoted).
+            if (arrMatches[ 2 ]){
+
+                // We found a quoted value. When we capture
+                // this value, unescape any double quotes.
+                strMatchedValue = arrMatches[2].replace(
+                    new RegExp("\"\"", "g"),
+                    "\""
+                );
+
+            } else {
+
+                // We found a non-quoted value.
+                strMatchedValue = arrMatches[3];
+
+            }
+
+
+            // Now that we have our value string, let's add
+            // it to the data array.
+            arrData[ arrData.length - 1 ].push( strMatchedValue );
+        }
+
+        // Return the parsed data.
+        return( arrData );
+    }
+
 
     // calls the init function when the window is done loading.
     window.onload = init;

@@ -181,7 +181,8 @@
 
         // setup the control object for the control gui
         control = new function () {
-            this.rotationSpeed = 0.005;
+            this.earthRotationSpeed = 0.005;
+            this.cloudRotationSpeed = 0.01;
             this.opacity = 0.6;
             this.ambientLightColor = ambientLight.color.getHex();
             this.directionalLightColor = directionalLight.color.getHex();
@@ -224,7 +225,8 @@
     function addControlGui(controlObject) {
         const gui = new dat.GUI();
         //const gui = new dat.GUI( { autoPlace: false } );
-        gui.add(controlObject, 'rotationSpeed', -0.01, 0.01);
+        gui.add(controlObject, 'earthRotationSpeed', -0.01, 0.01);
+        gui.add(controlObject, 'cloudRotationSpeed', -0.01, 0.01);
         gui.addColor(controlObject, 'ambientLightColor');
         gui.addColor(controlObject, 'directionalLightColor');
         //gui.domElement.id = 'gui';
@@ -261,8 +263,8 @@
         cameraControl.update();
 
         //rotation
-        scene.getObjectByName('earth').rotation.y+=control.rotationSpeed;
-        scene.getObjectByName('clouds').rotation.y+=control.rotationSpeed*1.1;
+        scene.getObjectByName('earth').rotation.y+=control.earthRotationSpeed;
+        scene.getObjectByName('clouds').rotation.y+=control.cloudRotationSpeed;
 
         // update light colors
         scene.getObjectByName('ambient').color = new THREE.Color(control.ambientLightColor);

@@ -12,6 +12,12 @@
     <asset:javascript src="CopyShader.js"/>
     <asset:javascript src="ShaderPass.js"/>
     <asset:javascript src="MaskPass.js"/>
+    <style>
+        .center {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
 <!--Top tool bar-->
@@ -53,16 +59,168 @@
     </li>
 </content>
 
-<div class="svg" role="presentation" style="height: 46.3%">
-    <div id="three-container" style="height: 40%">
-        <%--<asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>--%>
-    </div>
-</div>
 
 <div id="content" role="main">
     <div class="container">
         <section class="row colset-2-its">
             <h1>Welcome to Haowei's Web Tool</h1>
+        </section>
+    </div>
+</div>
+<div class="svg center" role="presentation" style="height: 46.3%">
+    <div id="three-container" style="height: 60%; width: 50%">
+        <%--<asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>--%>
+    </div>
+</div>
+<!--Spinning sphere-->
+<script>
+
+    // global variables
+    let renderer;
+    let scene;
+    let camera;
+    let control;
+    let stats;
+    let cameraControl;
+
+    //background variable
+
+    /**
+     * Initializes the scene, camera and objects. Called when the window is
+     * loaded by using window.onload (see below)
+     */
+    function init() {
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render, sets the background color and the size
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(0x000000, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
+
+        // create a sphere
+        var sphereGeometry = new THREE.SphereGeometry(15, 30, 30);
+        var sphereMaterial = new THREE.MeshNormalMaterial();
+        var earthMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        earthMesh.name = 'earth';
+        scene.add(earthMesh);
+
+        // position and point the camera to the center of the scene
+        camera.position.x = 35;
+        camera.position.y = 36;
+        camera.position.z = 33;
+        camera.lookAt(scene.position);
+
+        // add controls
+        cameraControl = new THREE.OrbitControls(camera);
+
+
+        // setup the control object for the control gui
+        control = new function () {
+            this.rotationSpeed = 0.005;
+            this.opacity = 0.6;
+        };
+
+        // add extras
+        //addControlGui(control); removed controls
+        //addStatsObject(); //removed stats
+
+
+        // add the output of the renderer to the html element
+        document.body.appendChild(renderer.domElement);
+
+        // call the render function, after the first render, interval is determined
+        // by requestAnimationFrame
+        render();
+    }
+
+
+    function addControlGui(controlObject) {
+        var gui = new dat.GUI();
+        gui.domElement.style.left = '0px';
+        gui.domElement.style.top = '0px';
+        gui.add(controlObject, 'rotationSpeed', -0.01, 0.01);
+    }
+
+    function addStatsObject() {
+        stats = new Stats();
+        stats.setMode(0);
+
+        //stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        document.body.appendChild(stats.domElement);
+    }
+
+
+    /**
+     * Called when the scene needs to be rendered. Delegates to requestAnimationFrame
+     * for future renders
+     */
+    function render() {
+        //imbed into selected item
+        let container = document.getElementById('three-container');
+        renderer.setSize($(container).width(), $(container).height());
+        container.appendChild(renderer.domElement);
+
+        // update stats
+        //stats.update();
+
+        resizeCanvasToDisplaySize();
+        // update the camera
+
+        cameraControl.update();
+
+        scene.getObjectByName('earth').rotation.y+=control.rotationSpeed;
+
+        // and render the scene
+        renderer.render(scene, camera);
+
+        // render using requestAnimationFrame
+        requestAnimationFrame(render);
+    }
+
+
+    /**
+     * Function handles the resize event. This make sure the camera and the renderer
+     * are updated at the correct moment.
+     */
+    function handleResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function resizeCanvasToDisplaySize() {
+        const canvas = renderer.domElement;
+        // look up the size the canvas is being displayed
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+
+        // adjust displayBuffer size to match
+        if (canvas.width !== width || canvas.height !== height) {
+            // you must pass false here or three.js sadly fights the browser
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            // update any render target sizes here
+        }
+    }
+
+    // calls the init function when the window is done loading.
+    window.onload = init;
+    // calls the handleResize function when the window is resized
+    window.addEventListener('resize', handleResize, false);
+
+</script>
+
 <%--
             <script>
 
@@ -555,167 +713,5 @@
 
             </script>
 --%>
-            <!--Spinning sphere-->
-            <script>
-
-                // global variables
-                var renderer;
-                var scene;
-                var camera;
-                var control;
-                var stats;
-                var cameraControl;
-
-                /**
-                 * Initializes the scene, camera and objects. Called when the window is
-                 * loaded by using window.onload (see below)
-                 */
-                function init() {
-
-                    // create a scene, that will hold all our elements such as objects, cameras and lights.
-                    scene = new THREE.Scene();
-
-                    // create a camera, which defines where we're looking at.
-                    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-                    // create a render, sets the background color and the size
-                    renderer = new THREE.WebGLRenderer();
-                    renderer.setClearColor(0x000000, 1.0);
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                    renderer.shadowMapEnabled = true;
-
-                    // create a sphere
-                    var sphereGeometry = new THREE.SphereGeometry(15, 30, 30);
-                    var sphereMaterial = new THREE.MeshNormalMaterial();
-                    var earthMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-                    earthMesh.name = 'earth';
-                    scene.add(earthMesh);
-
-                    // position and point the camera to the center of the scene
-                    camera.position.x = 35;
-                    camera.position.y = 36;
-                    camera.position.z = 33;
-                    camera.lookAt(scene.position);
-
-                    // add controls
-                    cameraControl = new THREE.OrbitControls(camera);
-
-
-                    // setup the control object for the control gui
-                    control = new function () {
-                        this.rotationSpeed = 0.005;
-                        this.opacity = 0.6;
-                    };
-
-                    // add extras
-                    //addControlGui(control); removed controls
-                    //addStatsObject(); //removed stats
-
-
-                    // add the output of the renderer to the html element
-                    document.body.appendChild(renderer.domElement);
-
-                    // call the render function, after the first render, interval is determined
-                    // by requestAnimationFrame
-                    render();
-                }
-
-
-                function addControlGui(controlObject) {
-                    var gui = new dat.GUI();
-                    gui.domElement.style.left = '0px';
-                    gui.domElement.style.top = '0px';
-                    gui.add(controlObject, 'rotationSpeed', -0.01, 0.01);
-                }
-
-                function addStatsObject() {
-                    stats = new Stats();
-                    stats.setMode(0);
-
-                    //stats.domElement.style.position = 'absolute';
-                    stats.domElement.style.left = '0px';
-                    stats.domElement.style.top = '0px';
-
-                    document.body.appendChild(stats.domElement);
-                }
-
-
-                /**
-                 * Called when the scene needs to be rendered. Delegates to requestAnimationFrame
-                 * for future renders
-                 */
-                function render() {
-                    //imbed into selected item
-                    let container = document.getElementById('three-container');
-                    renderer.setSize($(container).width(), $(container).height());
-                    container.appendChild(renderer.domElement);
-
-                    // update stats
-                    //stats.update();
-
-                    resizeCanvasToDisplaySize();
-                    // update the camera
-
-                    cameraControl.update();
-
-                    scene.getObjectByName('earth').rotation.y+=control.rotationSpeed;
-
-                    // and render the scene
-                    renderer.render(scene, camera);
-
-                    // render using requestAnimationFrame
-                    requestAnimationFrame(render);
-                }
-
-
-                /**
-                 * Function handles the resize event. This make sure the camera and the renderer
-                 * are updated at the correct moment.
-                 */
-                function handleResize() {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-
-                function resizeCanvasToDisplaySize() {
-                    const canvas = renderer.domElement;
-                    // look up the size the canvas is being displayed
-                    const width = canvas.clientWidth;
-                    const height = canvas.clientHeight;
-
-                    // adjust displayBuffer size to match
-                    if (canvas.width !== width || canvas.height !== height) {
-                        // you must pass false here or three.js sadly fights the browser
-                        renderer.setSize(width, height, false);
-                        camera.aspect = width / height;
-                        camera.updateProjectionMatrix();
-
-                        // update any render target sizes here
-                    }
-                }
-
-                // calls the init function when the window is done loading.
-                window.onload = init;
-                // calls the handleResize function when the window is resized
-                window.addEventListener('resize', handleResize, false);
-
-            </script>
-            <!--Buttom Tool Bar-->
-            <%--<div id="controllers" role="navigation">
-                <h2>Available Controllers:</h2>
-                <ul>
-                    <g:each var="c" in="${grailsApplication.controllerClasses.sort { it.fullName } }">
-                        <li class="controller">
-                            <g:link controller="${c.logicalPropertyName}">${c.fullName}</g:link>
-                        </li>
-                    </g:each>
-                </ul>
-            </div>--%>
-        </section>
-    </div>
-</div>
-
-
 </body>
 </html>

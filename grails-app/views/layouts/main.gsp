@@ -17,29 +17,36 @@
             width:50px;
             height: 70px;
         }
+        #bottom {
+            position: absolute;
+            width: 100%;
+            bottom: 0;
+        }
     </style>
 </head>
 
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-static-top" role="navigation">
-    <div class="container-fluid">
-        <a class="navbar-brand smallerPicture" href="/#"><asset:image src="myBeautifulWife.svg" /></a>
+    <div class="container-fluid" >
+        <a class="navbar-brand smallerPicture" ><asset:image src="myBeautifulWife.svg" /></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" aria-expanded="false" style="height: 0.8px;" id="navbarContent">
+
             <ul class="nav navbar-nav ml-auto">
                 <g:pageProperty name="page.nav"/>
             </ul>
         </div>
+
     </div>
 </nav>
 
 <g:layoutBody/>
 
-<div class="footer" role="contentinfo">
+<div class="footer" role="contentinfo" id="bottom">
     <div class="container-fluid">
         <div class="row">
             <div class="col">

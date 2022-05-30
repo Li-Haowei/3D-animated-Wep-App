@@ -72,9 +72,9 @@
 </content>
 
 
-
 <div class="center" style="background: black" >
-    <div id="three-container">
+    <button onclick="myFunction()" style="position: absolute">On/Off</button>
+    <div id="three-container" onclick="">
         <%--<asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>--%>
     </div>
 </div>
@@ -243,27 +243,32 @@
 
     function create3DOverlay(data) {
         // the geometry that will contain all our cubes
-        var geom = new THREE.Geometry();
+        const geom = new THREE.Geometry();
         // material to use for each of our elements. Could use a set of materials to
         // add colors relative to the density. Not done here.
-        var cubeMat = new THREE.MeshLambertMaterial({color: 0x3333ff,opacity:0.6, transparent: true, emissive: 0x262626});
+        const cubeMat = new THREE.MeshLambertMaterial({
+            color: 0x3333ff,
+            opacity: 0.6,
+            transparent: true,
+            emissive: 0x262626
+        });
 
         data.forEach(function(point) {
 
-            var offset = 0;
+            let offset = 0;
             if (point.length > 3) {
                 offset = 1;
             }
 
             if (parseFloat(point[2+offset]) >= 0) {
-                var lat = parseInt(point[0+offset])-90.5*-1;
-                var lon = parseInt(point[1+offset])-179.5;
-                var value = parseFloat(point[2+offset]);
+                const lat = parseInt(point[0 + offset]) - 90.5 * -1;
+                const lon = parseInt(point[1 + offset]) - 179.5;
+                const value = parseFloat(point[2 + offset]);
 
-                var position = latLongToVector3(lat, lon, 15, 0);
+                const position = latLongToVector3(lat, lon, 15, 0);
 
 //            var cube = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,1+value/16,1,1,1,cubeMat));
-                var cube = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,value/64,1,1,1,cubeMat));
+                const cube = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, value / 64, 1, 1, 1, cubeMat));
 //            var cube = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.15,1+Math.log(value),1,1,1,cubeMat));
 //            Math.log()
 
@@ -281,11 +286,11 @@
 
 
         // create a new mesh, containing all the other meshes.
-        var total = new THREE.Mesh(geom,cubeMat);
+        const total = new THREE.Mesh(geom, cubeMat);
         total.name = 'overlay';
 
         // and add the total mesh to the scene
-        var clouds = scene.getObjectByName('clouds');
+        const clouds = scene.getObjectByName('clouds');
         scene.remove(clouds);
 
         scene.add(total);
@@ -293,18 +298,18 @@
     }
     // convert the positions from a lat, lon to a position on a sphere.
     function latLongToVector3(lat, lon, radius, heigth) {
-        var phi = (lat)*Math.PI/180;
-        var theta = (lon-180)*Math.PI/180;
+        const phi = (lat) * Math.PI / 180;
+        const theta = (lon - 180) * Math.PI / 180;
 
-        var x = -(radius+heigth) * Math.cos(phi) * Math.cos(theta);
-        var y = (radius+heigth) * Math.sin(phi);
-        var z = (radius+heigth) * Math.cos(phi) * Math.sin(theta);
+        const x = -(radius + heigth) * Math.cos(phi) * Math.cos(theta);
+        const y = (radius + heigth) * Math.sin(phi);
+        const z = (radius + heigth) * Math.cos(phi) * Math.sin(theta);
 
         return new THREE.Vector3(x,y,z);
     }
     function addCanvas() {
 
-        var xmlhttp = new XMLHttpRequest();
+        const xmlhttp = new XMLHttpRequest();
         xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 var coords = CSVToArray(xmlhttp.responseText,",");
@@ -558,6 +563,17 @@
     // calls the handleResize function when the window is resized
     //window.addEventListener('resize', handleResize, false);
 
+</script>
+<script>
+    //Make 3 display disappear
+    function myFunction() {
+        const x = document.getElementById("three-container");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
 </script>
 
 </body>

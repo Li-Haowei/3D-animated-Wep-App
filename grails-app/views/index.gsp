@@ -58,7 +58,7 @@
         </ul>
     </li>
 </content>
-
+<div id="bgImg" hidden><asset:image src="starry_background.jpg" /></div>
 
 <div id="content" role="main">
     <div class="container">
@@ -85,11 +85,17 @@
 
     //background variable
 
+    let cameraBG;
+    let sceneBG;
+    let composer;
+    let clock;
+
     /**
      * Initializes the scene, camera and objects. Called when the window is
      * loaded by using window.onload (see below)
      */
     function init() {
+        clock = new THREE.Clock();
 
         // create a scene, that will hold all our elements such as objects, cameras and lights.
         scene = new THREE.Scene();
@@ -119,6 +125,35 @@
         // add controls
         cameraControl = new THREE.OrbitControls(camera);
 
+        // add background
+        cameraBG = new THREE.OrthographicCamera(-window.innerWidth, window.innerWidth, window.innerHeight, -window.innerHeight, -10000, 10000);
+        cameraBG.position.z = 50;
+        sceneBG = new THREE.Scene();
+        let backgroundImg = document.getElementById('bgImg').getAttribute('url');
+
+        const materialColor = new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture('/assets/starry_background.jpg'),
+            depthTest: false
+        });
+        const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), materialColor);
+        bgPlane.position.z = -100;
+        bgPlane.scale.set(window.innerWidth * 2, window.innerHeight * 2, 1);
+        sceneBG.add(bgPlane);
+
+        const bgPass = new THREE.RenderPass(sceneBG, cameraBG);
+        // next render the scene (rotating earth), without clearing the current output
+        const renderPass = new THREE.RenderPass(scene, camera);
+        renderPass.clear = false;
+        // finally copy the result to the screen
+        const effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+        effectCopy.renderToScreen = true;
+        // add these passes to the composer
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(bgPass);
+        composer.addPass(renderPass);
+        composer.addPass(effectCopy);
+        // add the output of the renderer to the html element
+        document.body.appendChild(renderer.domElement);
 
         // setup the control object for the control gui
         control = new function () {
@@ -182,6 +217,8 @@
         // and render the scene
         renderer.render(scene, camera);
 
+        renderer.autoClear = false;
+        composer.render();
         // render using requestAnimationFrame
         requestAnimationFrame(render);
     }

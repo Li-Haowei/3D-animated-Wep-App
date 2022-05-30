@@ -53,16 +53,16 @@
     </li>
 </content>
 
-<div class="svg" role="presentation">
-    <div class="grails-logo-container">
-        <asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>
+<div class="svg" role="presentation" style="height: 46.3%">
+    <div id="three-container" style="height: 40%">
+        <%--<asset:image src="grails-cupsonly-logo-white.svg" class="grails-logo"/>--%>
     </div>
 </div>
 
 <div id="content" role="main">
     <div class="container">
         <section class="row colset-2-its">
-            <h1>Welcome to Grails</h1>
+            <h1>Welcome to Haowei's Web Tool</h1>
 <%--
             <script>
 
@@ -555,6 +555,7 @@
 
             </script>
 --%>
+            <!--Spinning sphere-->
             <script>
 
                 // global variables
@@ -607,8 +608,8 @@
                     };
 
                     // add extras
-                    addControlGui(control);
-                    addStatsObject();
+                    //addControlGui(control); removed controls
+                    //addStatsObject(); //removed stats
 
 
                     // add the output of the renderer to the html element
@@ -622,6 +623,8 @@
 
                 function addControlGui(controlObject) {
                     var gui = new dat.GUI();
+                    gui.domElement.style.left = '0px';
+                    gui.domElement.style.top = '0px';
                     gui.add(controlObject, 'rotationSpeed', -0.01, 0.01);
                 }
 
@@ -629,7 +632,7 @@
                     stats = new Stats();
                     stats.setMode(0);
 
-                    stats.domElement.style.position = 'absolute';
+                    //stats.domElement.style.position = 'absolute';
                     stats.domElement.style.left = '0px';
                     stats.domElement.style.top = '0px';
 
@@ -642,11 +645,17 @@
                  * for future renders
                  */
                 function render() {
+                    //imbed into selected item
+                    let container = document.getElementById('three-container');
+                    renderer.setSize($(container).width(), $(container).height());
+                    container.appendChild(renderer.domElement);
 
                     // update stats
-                    stats.update();
+                    //stats.update();
 
+                    resizeCanvasToDisplaySize();
                     // update the camera
+
                     cameraControl.update();
 
                     scene.getObjectByName('earth').rotation.y+=control.rotationSpeed;
@@ -669,13 +678,31 @@
                     renderer.setSize(window.innerWidth, window.innerHeight);
                 }
 
+                function resizeCanvasToDisplaySize() {
+                    const canvas = renderer.domElement;
+                    // look up the size the canvas is being displayed
+                    const width = canvas.clientWidth;
+                    const height = canvas.clientHeight;
+
+                    // adjust displayBuffer size to match
+                    if (canvas.width !== width || canvas.height !== height) {
+                        // you must pass false here or three.js sadly fights the browser
+                        renderer.setSize(width, height, false);
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+
+                        // update any render target sizes here
+                    }
+                }
+
                 // calls the init function when the window is done loading.
                 window.onload = init;
                 // calls the handleResize function when the window is resized
                 window.addEventListener('resize', handleResize, false);
 
             </script>
-            <div id="controllers" role="navigation">
+            <!--Buttom Tool Bar-->
+            <%--<div id="controllers" role="navigation">
                 <h2>Available Controllers:</h2>
                 <ul>
                     <g:each var="c" in="${grailsApplication.controllerClasses.sort { it.fullName } }">
@@ -684,7 +711,7 @@
                         </li>
                     </g:each>
                 </ul>
-            </div>
+            </div>--%>
         </section>
     </div>
 </div>

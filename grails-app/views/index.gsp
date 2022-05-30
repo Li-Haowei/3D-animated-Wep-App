@@ -124,12 +124,13 @@
         scene.add(earthMesh);
 
         // create overlay
-
+        /*
         const overlayGeometry = new THREE.SphereGeometry(15, 60, 60);
         const overlayMaterial = createOverlayMaterial();
         const overlayMesh = new THREE.Mesh(overlayGeometry, overlayMaterial);
         overlayMesh.name= 'overlay';
         scene.add(overlayMesh);
+         */
 
         // create a cloudGeometry, slighly bigger than the original sphere
         const cloudGeometry = new THREE.SphereGeometry(15.3, 60, 60);
@@ -138,7 +139,7 @@
         cloudMesh.name = 'clouds';
         scene.add(cloudMesh);
 
-        //addCanvas()
+        addCanvas()
 
         // now add some better lighting
         const ambientLight = new THREE.AmbientLight(0x111111);
@@ -229,6 +230,10 @@
         earthMaterial.specularMap = specularMap;
         earthMaterial.specular = new THREE.Color(0x262626);
 
+        // bumpmap
+//    earthMaterial.bumpMap = bumpMap;
+//    earthMaterial.bumpScale = 0.15;
+
         // normalmap
         earthMaterial.normalMap = normalMap;
         earthMaterial.normalScale = new THREE.Vector2(0.5, 0.7);
@@ -236,6 +241,80 @@
         return earthMaterial;
     }
 
+    function create3DOverlay(data) {
+        // the geometry that will contain all our cubes
+        var geom = new THREE.Geometry();
+        // material to use for each of our elements. Could use a set of materials to
+        // add colors relative to the density. Not done here.
+        var cubeMat = new THREE.MeshLambertMaterial({color: 0x3333ff,opacity:0.6, transparent: true, emissive: 0x262626});
+
+        data.forEach(function(point) {
+
+            var offset = 0;
+            if (point.length > 3) {
+                offset = 1;
+            }
+
+            if (parseFloat(point[2+offset]) >= 0) {
+                var lat = parseInt(point[0+offset])-90.5*-1;
+                var lon = parseInt(point[1+offset])-179.5;
+                var value = parseFloat(point[2+offset]);
+
+                var position = latLongToVector3(lat, lon, 15, 0);
+
+//            var cube = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,1+value/16,1,1,1,cubeMat));
+                var cube = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,value/64,1,1,1,cubeMat));
+//            var cube = new THREE.Mesh(new THREE.BoxGeometry(0.15,0.15,1+Math.log(value),1,1,1,cubeMat));
+//            Math.log()
+
+
+                // position the cube correctly
+                cube.position = position;
+                cube.lookAt( new THREE.Vector3(0,0,0) );
+
+                // merge with main model
+                THREE.GeometryUtils.merge(geom,cube);
+
+
+            }
+        });
+
+
+        // create a new mesh, containing all the other meshes.
+        var total = new THREE.Mesh(geom,cubeMat);
+        total.name = 'overlay';
+
+        // and add the total mesh to the scene
+        var clouds = scene.getObjectByName('clouds');
+        scene.remove(clouds);
+
+        scene.add(total);
+//    scene.add(clouds);
+    }
+    // convert the positions from a lat, lon to a position on a sphere.
+    function latLongToVector3(lat, lon, radius, heigth) {
+        var phi = (lat)*Math.PI/180;
+        var theta = (lon-180)*Math.PI/180;
+
+        var x = -(radius+heigth) * Math.cos(phi) * Math.cos(theta);
+        var y = (radius+heigth) * Math.sin(phi);
+        var z = (radius+heigth) * Math.cos(phi) * Math.sin(theta);
+
+        return new THREE.Vector3(x,y,z);
+    }
+    function addCanvas() {
+
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                var coords = CSVToArray(xmlhttp.responseText,",");
+                create3DOverlay(coords);
+            }
+        }
+
+        xmlhttp.open("GET", "../assets/out-7.csv", true);
+        xmlhttp.send();
+    }
 
     function createCloudMaterial() {
         const cloudTexture = THREE.ImageUtils.loadTexture("/assets/fair_clouds_4k.png");
@@ -274,7 +353,7 @@
      * for future renders
      */
     function render() {
-        scene.getObjectByName('overlay').material.map.needsUpdate = true;
+        //scene.getObjectByName('overlay').material.map.needsUpdate = true;
 
         //imbed into selected item
         let container = document.getElementById('three-container');
@@ -291,8 +370,9 @@
 
         //rotation
         scene.getObjectByName('earth').rotation.y+=control.earthRotationSpeed;
-        scene.getObjectByName('overlay').rotation.y += control.earthRotationSpeed;
-        scene.getObjectByName('clouds').rotation.y+=control.cloudRotationSpeed;
+        //scene.getObjectByName('clouds').rotation.y+=control.cloudRotationSpeed;
+        if (scene.getObjectByName('overlay')) scene.getObjectByName('overlay').rotation.y += control.earthRotationSpeed;
+        //scene.getObjectByName('overlay').rotation.y += control.earthRotationSpeed;
 
         // update light colors
         scene.getObjectByName('ambient').color = new THREE.Color(control.ambientLightColor);
@@ -344,7 +424,7 @@
         return olMaterial;
     }
 
-    function addCanvas() {
+    /*function addCanvas() {
         canvas = document.createElement("canvas");
         canvas.width=4096;
         canvas.height=2048;
@@ -388,7 +468,7 @@
         xmlhttp.send();
 
         return canvas;
-    }
+    }*/
     function CSVToArray( strData, strDelimiter ){
         // Check to see if the delimiter is defined. If not,
         let strMatchedValue;

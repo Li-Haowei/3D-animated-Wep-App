@@ -5,8 +5,8 @@
     <title>My Web Tool</title>
     <asset:javascript src="three.js"/>
     <asset:javascript src="OrbitControls.js"/>
-    <asset:javascript src="stats.min.js"/>
     <asset:javascript src="dat.gui.min.js.js"/>
+    <asset:javascript src="stats.min.js"/>
     <asset:javascript src="EffectComposer.js"/>
     <asset:javascript src="RenderPass.js"/>
     <asset:javascript src="CopyShader.js"/>
@@ -94,6 +94,7 @@
     let sceneBG;
     let composer;
     let clock;
+    let canvas;
 
     /**
      * Initializes the scene, camera and objects. Called when the window is
@@ -116,7 +117,7 @@
 
         // create a sphere
         const sphereGeometry = new THREE.SphereGeometry(15, 30, 30);
-        const sphereMaterial = createEarthMaterial();//new THREE.MeshNormalMaterial();
+        const sphereMaterial = createEarthMaterial(); //new THREE.MeshNormalMaterial();
         const earthMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
         earthMesh.name = 'earth';
         scene.add(earthMesh);
@@ -141,13 +142,26 @@
 
 
         // position and point the camera to the center of the scene
-        camera.position.x = 35;
-        camera.position.y = 36;
-        camera.position.z = 33;
+        camera.position.x = 25;
+        camera.position.y = 10;
+        camera.position.z = 63;
         camera.lookAt(scene.position);
 
         // add controls
         cameraControl = new THREE.OrbitControls(camera);
+
+        // setup the control object for the control gui
+        control = new function () {
+            this.earthRotationSpeed = 0.005;
+            this.cloudRotationSpeed = 0.01;
+            this.opacity = 0.6;
+            this.ambientLightColor = ambientLight.color.getHex();
+            this.directionalLightColor = directionalLight.color.getHex();
+        };
+
+        // add extras
+        addControlGui(control);
+        //addStatsObject(); //removed stats
 
         // add background
         cameraBG = new THREE.OrthographicCamera(-window.innerWidth, window.innerWidth, window.innerHeight, -window.innerHeight, -10000, 10000);
@@ -179,19 +193,6 @@
         // add the output of the renderer to the html element
         document.body.appendChild(renderer.domElement);
 
-        // setup the control object for the control gui
-        control = new function () {
-            this.earthRotationSpeed = 0.005;
-            this.cloudRotationSpeed = 0.01;
-            this.opacity = 0.6;
-            this.ambientLightColor = ambientLight.color.getHex();
-            this.directionalLightColor = directionalLight.color.getHex();
-        };
-
-        // add extras
-        addControlGui(control);
-
-        //addStatsObject(); //removed stats
 
 
         // add the output of the renderer to the html element
@@ -205,12 +206,25 @@
     function createEarthMaterial() {
         // 4096 is the maximum width for maps
         const earthTexture = THREE.ImageUtils.loadTexture("/assets/earthmap4k.jpg");
+        const bumpMap = THREE.ImageUtils.loadTexture("/assets/earthbump4k.jpg");
+        const specularMap = THREE.ImageUtils.loadTexture("/assets/earthspec4k.jpg");
+        const normalMap = THREE.ImageUtils.loadTexture("/assets/earth_normalmap_flat4k.jpg");
 
+        //RGB information
         const earthMaterial = new THREE.MeshPhongMaterial();
         earthMaterial.map = earthTexture;
 
+        // specular defines the reflection of the surface
+        earthMaterial.specularMap = specularMap;
+        earthMaterial.specular = new THREE.Color(0x262626);
+
+        // normalmap
+        earthMaterial.normalMap = normalMap;
+        earthMaterial.normalScale = new THREE.Vector2(0.5, 0.7);
+
         return earthMaterial;
     }
+
 
     function createCloudMaterial() {
         const cloudTexture = THREE.ImageUtils.loadTexture("/assets/fair_clouds_4k.png");

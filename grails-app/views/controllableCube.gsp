@@ -8,7 +8,7 @@
 <html>
 <head>
     <meta name="layout" content="main"/>
-    <title>My Web Tool</title>
+    <title>Controllable Cube</title>
     <asset:javascript src="three.js"/>
     <asset:javascript src="OrbitControls.js"/>
     <asset:javascript src="dat.gui.min.js.js"/>
@@ -67,7 +67,7 @@
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Other projects<span class="caret"></span></a>
         <ul class="dropdown-menu"   style="background: #eac086">
-            <li class="dropdown-item"><a href="_controllableCube" target="_blank">Controllable Cube</a></li>
+            <li class="dropdown-item"><a href="<g:createLink action="controllableCube"/> " target="_blank">Controllable Cube</a></li>
         </ul>
     </li>
     <!--Information about the web app-->

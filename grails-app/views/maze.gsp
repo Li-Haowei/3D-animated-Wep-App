@@ -71,6 +71,7 @@
             <%--<li class="dropdown-item"><a href="<g:createLink action="controllableCube"/> " target="_blank">Controllable Cube</a></li>--%>
             <li class="dropdown-item"><a href="controllableCube" target="_blank">Controllable Cube</a></li>
             <li class="dropdown-item"><a href="maze" target="_blank">Maze</a></li>
+            <li class="dropdown-item"><a href="ARtext" target="_blank">AR Text</a></li>
         </ul>
     </li>
     <!--Information about the web app-->
@@ -134,7 +135,7 @@
         scene = new THREE.Scene();
 
         // generate a maze
-        const maze = new Maze(scene, 15, width, width);
+        const maze = new Maze(scene, 20, width, width);
         maze.generate();
         maze.draw();
         const walls = maze.getElements();
@@ -155,7 +156,7 @@
         renderer.shadowMapEnabled = true;
 
         // create the ground plane
-        const planeGeometry = new THREE.PlaneGeometry(width, width, 40, 40);
+        const planeGeometry = new THREE.PlaneGeometry(width+10, width+10, 60, 60);
         const planeMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
         planeMaterial.map = THREE.ImageUtils.loadTexture("/assets/wood_1-1024x1024.png")
         planeMaterial.map.wrapS = planeMaterial.map.wrapT = THREE.RepeatWrapping;
@@ -163,8 +164,6 @@
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.receiveShadow = true;
 
-        // rotate and position the plane
-        plane.rotation.x = -0.5 * Math.PI;
         // rotate and position the plane
         plane.rotation.x = -0.5 * Math.PI;
         plane.position.x = 0;

@@ -12,6 +12,7 @@ class UrlMappings {
         "/"(view:"/index")
         "/controllableCube"(view:"/controllableCube")
         "/maze"(view:"/maze")
+        "/ARtext"(view:"/ARtext")
         "500"(view:'/error')
         "404"(view:'/notFound')
     }

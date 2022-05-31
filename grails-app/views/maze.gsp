@@ -8,34 +8,34 @@
 <html>
 <head>
     <meta name="layout" content="main"/>
-    <title>Controllable Cube</title>
+    <title>Maze</title>
     <asset:javascript src="three.js"/>
-    <asset:javascript src="OrbitControls.js"/>
     <asset:javascript src="dat.gui.min.js.js"/>
     <asset:javascript src="stats.min.js"/>
-    <asset:javascript src="EffectComposer.js"/>
-    <asset:javascript src="RenderPass.js"/>
-    <asset:javascript src="CopyShader.js"/>
-    <asset:javascript src="ShaderPass.js"/>
-    <asset:javascript src="MaskPass.js"/>
-    <asset:javascript src="chroma.min.js"/>
+    <asset:javascript src="/maze/array.js"/>
+    <asset:javascript src="/maze/cell.js"/>
+    <asset:javascript src="/maze/graph.js"/>
+    <asset:javascript src="/maze/maze.js"/>
+    <asset:javascript src="/maze/mazeGenerator.js"/>
+    <asset:javascript src="/maze/underscore-min.js"/>
     <asset:javascript src="tween.js"/>
+    <asset:javascript src="TrackballControls.js"/>
     <style>
-        .center {
-            display: flex;
-            justify-content: center;
-            height: 70%
-        }
-        #three-container{
-            border-radius: 50%;
-            height: 100%;
-            width: 60%
-        }
-        #gui{
-            position:absolute;
-            top: 85px;
-            left: 80%
-        }
+    .center {
+        display: flex;
+        justify-content: center;
+        height: 70%
+    }
+    #three-container{
+        border-radius: 50%;
+        height: 100%;
+        width: 60%
+    }
+    #gui{
+        position:absolute;
+        top: 85px;
+        left: 80%
+    }
     </style>
 </head>
 <body>
@@ -94,38 +94,56 @@
     <div id="three-container" >
     </div>
 </div>
-<!--Spinning sphere-->
-
-<!--controllable cube-->
+<!--Maze-->
 <script>
-
     // global variables
     let renderer;
     let scene;
     let camera;
     let control;
     let stats;
-
     let isTweening = false;
+    let controls;
+
+
+    const collidableMeshList = [];
+
+    const width = 150;
 
     function createCube() {
-        const cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
-        const cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
+
+        const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
+        const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff, transparent: true, opacity: 0.8});
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.castShadow = true;
         cube.name = 'cube';
-        cube.position = new THREE.Vector3(2, 2, 0);
+        cube.position = new THREE.Vector3(width/2 - 3, 1, width/2 - 3);
         scene.add(cube);
         return cube;
     }
+
     /**
      * Initializes the scene, camera and objects. Called when the window is
      * loaded by using window.onload (see below)
      */
     function init() {
 
+
+
         // create a scene, that will hold all our elements such as objects, cameras and lights.
         scene = new THREE.Scene();
+
+        // generate a maze
+        const maze = new Maze(scene, 15, width, width);
+        maze.generate();
+        maze.draw();
+        const walls = maze.getElements();
+        walls.forEach(function(e) {collidableMeshList.push(e)});
+
+
+
+        // add cube
+        createCube();
 
         // create a camera, which defines where we're looking at.
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -137,11 +155,16 @@
         renderer.shadowMapEnabled = true;
 
         // create the ground plane
-        const planeGeometry = new THREE.PlaneGeometry(120, 120, 20, 20);
-        const planeMaterial = new THREE.MeshLambertMaterial({color: 0xcccccc});
+        const planeGeometry = new THREE.PlaneGeometry(width, width, 40, 40);
+        const planeMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
+        planeMaterial.map = THREE.ImageUtils.loadTexture("/assets/wood_1-1024x1024.png")
+        planeMaterial.map.wrapS = planeMaterial.map.wrapT = THREE.RepeatWrapping;
+        planeMaterial.map.repeat.set( 4, 4 );
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.receiveShadow = true;
 
+        // rotate and position the plane
+        plane.rotation.x = -0.5 * Math.PI;
         // rotate and position the plane
         plane.rotation.x = -0.5 * Math.PI;
         plane.position.x = 0;
@@ -150,45 +173,86 @@
 
         // add the plane to the scene
         scene.add(plane);
-        const cube = createCube();
+
+        const startWall = new THREE.BoxGeometry(10, 2, 1);
+        const startMesh = new THREE.Mesh(startWall);
+        startMesh.position.set(width/2-5,0,width/2);
+        scene.add(startMesh);
+        collidableMeshList.push(startMesh);
+
+        const endWall = new THREE.BoxGeometry(10, 2, 1);
+        const endMesh = new THREE.Mesh(endWall);
+        endMesh.position.set(-width/2+5,0,-width/2);
+        scene.add(endMesh);
+        collidableMeshList.push(endMesh);
 
         // position and point the camera to the center of the scene
-        camera.position.x = 40;
-        camera.position.y = 40;
-        camera.position.z = 40;
+        camera.position.x = 70;
+        camera.position.y = 200;
+        camera.position.z = 150;
+        //camera.lookAt(new THREE.Vector3(10,0,35));
         camera.lookAt(scene.position);
+        controls = new THREE.TrackballControls( camera );
 
-        // add spotlight for the shadows
-        const spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(0, 40, 20);
-        spotLight.shadowCameraNear = 20;
-        spotLight.shadowCameraFar = 150;
-        spotLight.castShadow = true;
+        // add spotlight for the finish line
+        const finishLight = new THREE.SpotLight(0xff0000);
+        finishLight.position.set(-50, 70, -50);
+        finishLight.shadowCameraNear = 20;
+        finishLight.shadowCameraFar = 50;
+        finishLight.castShadow = true;
+        finishLight.intensity = 0.5;
 
-        scene.add(spotLight);
+        const finishTarget = new THREE.Object3D();
+        finishTarget.position.set(-60,0,-60);
+        finishLight.target = finishTarget;
 
-        // set up the control object for the control gui
+        scene.add(finishLight);
+
+        // add spotlight for the starting point
+        const startLight = new THREE.SpotLight(0x00ff00);
+        startLight.position.set(50, 70, 50);
+        startLight.shadowCameraNear = 10;
+        startLight.shadowCameraFar = 50;
+        startLight.castShadow = true;
+        startLight.intensity = 0.5;
+
+        const startTarget = new THREE.Object3D();
+        startTarget.position.set(60,0,60);
+        startLight.target = startTarget;
+
+        scene.add(startLight);
+
+        // add directionlight for general illumination
+        const directionalLight = new THREE.DirectionalLight({color: 0xaaaaaa});
+        directionalLight.castShadow = true;
+        directionalLight.position.set(0,50,50);
+        directionalLight.intensity = 0.6;
+
+        scene.add(directionalLight);
+
+
+        // setup the control object for the control gui
+
+        // setup the control object for the control gui
         control = new function () {
-            this.rotationSpeed = 0.005;
-            this.opacity = 0.9;
-            this.color = cube.material.color.getHex();
+
 
             this.forward = function () {
-                takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
+                takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 400);
             };
             this.back = function () {
-                takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
+                takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 400);
             };
             this.left = function () {
-                takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
+                takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 400);
             };
             this.right = function () {
-                takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
+                takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 400);
             };
         };
 
         // add extras
-        addControlGui(control);
+        //addControlGui(control);
         //addStatsObject();
 
 
@@ -200,6 +264,114 @@
         render();
     }
 
+    function setupKeyControls() {
+        //Read key from DOM and bind to function
+        document.onkeydown = function(e) {
+            switch (e.keyCode) {
+                case 37:
+                    takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 38:
+                    takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 39:
+                    takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 40:
+                    takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+            }
+        };
+    }
+
+    function addControlGui(controlObject) {
+        const gui = new dat.GUI();
+        gui.add(controlObject,'forward');
+        gui.add(controlObject,'back');
+        gui.add(controlObject,'left');
+        gui.add(controlObject,'right');
+
+    }
+
+    function addStatsObject() {
+        stats = new Stats();
+        stats.setMode(0);
+
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+
+        document.body.appendChild( stats.domElement );
+    }
+
+
+    /**
+     * Called when the scene needs to be rendered. Delegates to requestAnimationFrame
+     * for future renders
+     */
+    function render() {
+
+        //imbed into selected item
+        let container = document.getElementById('three-container');
+        renderer.setSize($(container).width(), $(container).height());
+        container.appendChild(renderer.domElement);
+        // update stats
+        //stats.update();
+
+        // and render the scene
+        renderer.render(scene, camera);
+        //resizeCanvasToDisplaySize();
+        TWEEN.update();
+
+        setupKeyControls()
+
+        detectCollision();
+
+        //controls.update();
+
+        // render using requestAnimationFrame
+        requestAnimationFrame(render);
+    }
+
+    function detectCollision() {
+        // collision detection:
+        //   determines if any of the rays from the cube's origin to each vertex
+        //		intersects any face of a mesh in the array of target meshes
+        //   for increased collision accuracy, add more vertices to the cube;
+        //		for example, new THREE.BoxGeometry( 64, 64, 64, 8, 8, 8, wireMaterial )
+        //   HOWEVER: when the origin of the ray is within the target mesh, collisions do not occur
+        let cube = scene.getObjectByName('cube');
+        const originPoint = cube.position.clone();
+
+
+        for (let vertexIndex = 0; vertexIndex < cube.geometry.vertices.length; vertexIndex++)
+        {
+            const localVertex = cube.geometry.vertices[vertexIndex].clone();
+            const globalVertex = localVertex.applyMatrix4(cube.matrix);
+            const directionVector = globalVertex.sub(cube.position);
+
+            const ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
+            const collisionResults = ray.intersectObjects(collidableMeshList);
+
+            if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+            {
+
+                // if we've got a hit, we just stop the current walk and reset to base point
+                const tweens = TWEEN.getAll();
+
+                if (tweens.length > 0) {
+
+                    tweens[0].stop();
+                    TWEEN.removeAll();
+                    isTweening = false;
+
+                    scene.remove(cube);
+                    cube = createCube();
+                }
+            }
+        }
+    }
+
     function takeStepRight(cube, start, end, time) {
         const cubeGeometry = cube.geometry;
         const width = 4;
@@ -208,6 +380,7 @@
                 .to({x: end}, time)
                 .easing(TWEEN.Easing.Linear.None)
                 .onStart(function () {
+                    isTweening = true;
                     cube.position.y += -width / 2;
                     cube.position.z += -width / 2;
                     cubeGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, width / 2, width / 2));
@@ -305,6 +478,7 @@
         const width = 4;
         const cubeGeometry = cube.geometry;
 
+
         if (!isTweening) {
             const tween = new TWEEN.Tween({x: start, cube: cube, previous: 0})
                 .to({x: end}, time)
@@ -339,28 +513,6 @@
         }
     }
 
-
-    function addControlGui(controlObject) {
-        const gui = new dat.GUI();
-        gui.add(controlObject,'forward');
-        gui.add(controlObject,'back');
-        gui.add(controlObject,'left');
-        gui.add(controlObject,'right');
-        gui.close();
-
-    }
-
-    function addStatsObject() {
-        stats = new Stats();
-        stats.setMode(0);
-
-        stats.domElement.style.position = 'absolute';
-        stats.domElement.style.left = '0px';
-        stats.domElement.style.top = '0px';
-
-        document.body.appendChild( stats.domElement );
-    }
-
     function resizeCanvasToDisplaySize() {
         const canvas = renderer.domElement;
         // look up the size the canvas is being displayed
@@ -377,55 +529,6 @@
             // update any render target sizes here
         }
     }
-
-    function setupKeyControls() {
-        //Read key from DOM and bind to function
-        document.onkeydown = function(e) {
-            switch (e.keyCode) {
-                case 37:
-                    takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
-                    break;
-                case 38:
-                    takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
-                    break;
-                case 39:
-                    takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
-                    break;
-                case 40:
-                    takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
-                    break;
-            }
-        };
-    }
-
-    /**
-     * Called when the scene needs to be rendered. Delegates to requestAnimationFrame
-     * for future renders
-     */
-    function render() {
-
-
-        //imbed into selected item
-        let container = document.getElementById('three-container');
-        renderer.setSize($(container).width(), $(container).height());
-        container.appendChild(renderer.domElement);
-
-        // update stats
-        //stats.update();
-
-        resizeCanvasToDisplaySize();
-        TWEEN.update();
-
-        //Bind key to function
-        setupKeyControls();
-        // and render the scene
-        renderer.render(scene, camera);
-
-        // render using requestAnimationFrame
-        requestAnimationFrame(render);
-    }
-
-
     /**
      * Function handles the resize event. This make sure the camera and the renderer
      * are updated at the correct moment.

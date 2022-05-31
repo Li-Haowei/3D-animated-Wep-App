@@ -69,6 +69,7 @@
         <ul class="dropdown-menu"   style="background: #eac086">
             <li class="dropdown-item"><a href="#" target="_blank">Earth Population</a></li>
             <li class="dropdown-item"><a href="controllableCube" target="_blank">Controllable Cube</a></li>
+            <li class="dropdown-item"><a href="maze" target="_blank">Maze</a></li>
         </ul>
     </li>
     <!--Information about the web app-->

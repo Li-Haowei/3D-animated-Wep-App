@@ -67,7 +67,9 @@
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Other projects<span class="caret"></span></a>
         <ul class="dropdown-menu"   style="background: #eac086">
-            <li class="dropdown-item"><a href="<g:createLink action="controllableCube"/> " target="_blank">Controllable Cube</a></li>
+            <li class="dropdown-item"><a href="/" target="_blank">Earth Population</a></li>
+            <%--<li class="dropdown-item"><a href="<g:createLink action="controllableCube"/> " target="_blank">Controllable Cube</a></li>--%>
+            <li class="dropdown-item"><a href="controllableCube" target="_blank">Controllable Cube</a></li>
         </ul>
     </li>
     <!--Information about the web app-->
@@ -344,6 +346,7 @@
         gui.add(controlObject,'back');
         gui.add(controlObject,'left');
         gui.add(controlObject,'right');
+        gui.close();
 
     }
 

@@ -110,7 +110,7 @@
     function createCube() {
 
         const cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
-        const cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.6});
+        const cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff0000, transparent: true, opacity: 0.8});
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.castShadow = true;
         cube.name = 'cube';
@@ -153,14 +153,14 @@
         const cube = createCube();
 
         // position and point the camera to the center of the scene
-        camera.position.x = 10;
-        camera.position.y = 16;
-        camera.position.z = 15;
+        camera.position.x = 40;
+        camera.position.y = 40;
+        camera.position.z = 40;
         camera.lookAt(scene.position);
 
         // add spotlight for the shadows
         const spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(20, 40, 20);
+        spotLight.position.set(0, 40, 20);
         spotLight.shadowCameraNear = 20;
         spotLight.shadowCameraFar = 150;
         spotLight.castShadow = true;
@@ -170,20 +170,20 @@
         // setup the control object for the control gui
         control = new function () {
             this.rotationSpeed = 0.005;
-            this.opacity = 0.6;
+            this.opacity = 0.9;
             this.color = cube.material.color.getHex();
 
             this.forward = function () {
-                takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 2000);
+                takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
             };
             this.back = function () {
-                takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 2000);
+                takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
             };
             this.left = function () {
-                takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 2000);
+                takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
             };
             this.right = function () {
-                takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 2000);
+                takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 500);
             };
         };
 
@@ -378,7 +378,25 @@
         }
     }
 
-
+    function setupKeyControls() {
+        //Read key from DOM and bind to function
+        document.onkeydown = function(e) {
+            switch (e.keyCode) {
+                case 37:
+                    takeStepLeft(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 38:
+                    takeStepForward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 39:
+                    takeStepRight(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+                case 40:
+                    takeStepBackward(scene.getObjectByName('cube'), 0, 0.5 * Math.PI, 200);
+                    break;
+            }
+        };
+    }
 
     /**
      * Called when the scene needs to be rendered. Delegates to requestAnimationFrame
@@ -398,6 +416,8 @@
         resizeCanvasToDisplaySize();
         TWEEN.update();
 
+        //Bind key to function
+        setupKeyControls();
         // and render the scene
         renderer.render(scene, camera);
 

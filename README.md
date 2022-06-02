@@ -1,9 +1,21 @@
+<style>
+       .outer {
+         width: 200px;
+         margin: 0 auto;
+         background-color: yellow;
+       }
+
+       .inner {
+         margin-left: 50px;
+         background-color: orange;
+       }
+</style>
 <h1>My Web Tool</h1>
 This web tool is for personal use but feel free to use my template
 
 <h1>Demos</h1>
 It contains some Three.js demos that I've worked on. More will be in the future.
-<div style="margin: 20px 20px 20px 20px">
+<div class="inner">
        <h2>Earth</h2>
               <img   style = "height:200px; width: 200px;border: solid 2px; border-radius: 50px;" 
               src="earthGif.gif" />

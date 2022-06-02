@@ -92,7 +92,7 @@
 <!--Content Displayer-->
 <div class="center" style="background: black" >
     <button onclick="onOff()" style="position: absolute;">On/Off</button>
-    <div id="three-container" >
+    <div id="three-container" style="transform: rotate(0deg)" >
     </div>
 </div>
 <!--Maze-->
@@ -113,7 +113,7 @@
 
     function createCube() {
 
-        const cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
+        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
         const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff, transparent: true, opacity: 0.8});
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.castShadow = true;
@@ -135,11 +135,17 @@
         scene = new THREE.Scene();
 
         // generate a maze
-        const maze = new Maze(scene, 20, width, width);
+        const maze = new Maze(scene, 30, width, width);
+
         maze.generate();
         maze.draw();
+
         const walls = maze.getElements();
-        walls.forEach(function(e) {collidableMeshList.push(e)});
+        walls.forEach(function(e) {
+            collidableMeshList.push(e);
+        });
+
+
 
 
 
@@ -156,7 +162,7 @@
         renderer.shadowMapEnabled = true;
 
         // create the ground plane
-        const planeGeometry = new THREE.PlaneGeometry(width+10, width+10, 60, 60);
+        const planeGeometry = new THREE.PlaneGeometry(width, width, 60, 60);
         const planeMaterial = new THREE.MeshPhongMaterial({color: 0xffffff});
         planeMaterial.map = THREE.ImageUtils.loadTexture("/assets/wood_1-1024x1024.png")
         planeMaterial.map.wrapS = planeMaterial.map.wrapT = THREE.RepeatWrapping;
@@ -187,7 +193,7 @@
 
         // position and point the camera to the center of the scene
         camera.position.x = 70;
-        camera.position.y = 200;
+        camera.position.y = 250;
         camera.position.z = 150;
         //camera.lookAt(new THREE.Vector3(10,0,35));
         camera.lookAt(scene.position);
@@ -514,6 +520,7 @@
 
     function resizeCanvasToDisplaySize() {
         const canvas = renderer.domElement;
+
         // look up the size the canvas is being displayed
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;

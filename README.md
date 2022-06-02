@@ -1,15 +1,17 @@
-<style>
-       .outer {
-         width: 200px;
-         margin: 0 auto;
-         background-color: yellow;
-       }
+<head>
+       <style>
+              .outer {
+                width: 200px;
+                margin: 0 auto;
+                background-color: yellow;
+              }
 
-       .inner {
-         margin-left: 50px;
-         background-color: orange;
-       }
-</style>
+              .inner {
+                margin-left: 50px;
+                background-color: orange;
+              }
+       </style>
+</head> 
 <h1>My Web Tool</h1>
 This web tool is for personal use but feel free to use my template
 

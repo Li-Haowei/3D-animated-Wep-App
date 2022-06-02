@@ -1,5 +1,9 @@
 <h1>My Web Tool</h1>
 This web tool is for personal use but feel free to use my template
+<h1>top menu bar</h1>
+Drop down menu contains the links that I use daily and helpful links
+<h1>Bottom menu bar</h1>
+Links specifically about this project
 
 <h1>Demos</h1>
 It contains some Three.js demos that I've worked on. More will be in the future.

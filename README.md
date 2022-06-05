@@ -35,6 +35,7 @@ It contains some Three.js demos that I've worked on. More will be in the future.
               <img   style = "height:200px; width: 200px;border: solid 2px; border-radius: 50px;" 
               src="artext.gif" />
               <p>
-              This is an attempt to create realistic AR view on webpage, and the result is in the gif.
+              This is an attempt to create realistic AR view on webpage, and the result is in the gif. <br>
+              Other uses can be mapping the "AR text viewers" onto some other object like cube. And it can be more complex than just text.
               </p>
 </div>
